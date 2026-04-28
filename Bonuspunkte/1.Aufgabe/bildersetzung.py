@@ -8,7 +8,6 @@ import numpy as np
 
 
 def order_corners(points: np.ndarray) -> np.ndarray:
-    """Return points in the order: top-left, top-right, bottom-right, bottom-left."""
     pts = points.astype(np.float32)
     s = pts.sum(axis=1)
     d = np.diff(pts, axis=1).reshape(-1)
@@ -22,10 +21,8 @@ def order_corners(points: np.ndarray) -> np.ndarray:
 
 
 def detect_billboard_corners(scene_bgr: np.ndarray) -> tuple[np.ndarray | None, np.ndarray]:
-    """Detect the green billboard area and return ordered corner points plus a debug mask."""
     hsv = cv2.cvtColor(scene_bgr, cv2.COLOR_BGR2HSV)
 
-    # Green chroma key range for the provided billboard image.
     lower_green = np.array([35, 40, 40], dtype=np.uint8)
     upper_green = np.array([90, 255, 255], dtype=np.uint8)
     mask = cv2.inRange(hsv, lower_green, upper_green)
@@ -90,14 +87,7 @@ def main() -> None:
     scene = cv2.imread(args.scene)
     insert = cv2.imread(args.insert)
 
-    if scene is None:
-        raise FileNotFoundError(f"Szenenbild nicht gefunden oder nicht lesbar: {args.scene}")
-    if insert is None:
-        raise FileNotFoundError(f"Insert-Bild nicht gefunden oder nicht lesbar: {args.insert}")
-
     dst_points, green_mask = detect_billboard_corners(scene)
-    if dst_points is None:
-        raise RuntimeError("Plakatflaeche konnte nicht automatisch erkannt werden.")
 
     insert_h, insert_w = insert.shape[:2]
     src_points = np.array(
@@ -121,16 +111,7 @@ def main() -> None:
     np.savetxt(args.out_matrix, homography, fmt="%.8f")
     np.savetxt(args.out_points, dst_points, fmt="%.2f", header="x y")
 
-    print("Erkannte Zielpunkte (tl, tr, br, bl):")
-    print(dst_points)
-    print("\nTransformationsmatrix H:")
-    print(homography)
-    print("\nGespeicherte Dateien:")
-    print(args.out_composite)
-    print(args.out_warped)
-    print(args.out_matrix)
-    print(args.out_points)
-    print(args.out_mask)
+    return
 
 
 if __name__ == "__main__":
